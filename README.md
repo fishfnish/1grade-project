@@ -1,1 +1,2 @@
-# 1grade-project
+8월 7일\n
+ESC메뉴 완성
