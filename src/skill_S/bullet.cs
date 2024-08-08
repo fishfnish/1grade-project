@@ -34,7 +34,7 @@ public class bullet : MonoBehaviour
             Vector3 input = Mouse.current.position.ReadValue();
             Ray ray = Camera.main.ScreenPointToRay(input);
             Physics.Raycast(ray, out hit);
-            Debug.Log("hit " + hit.point);
+            // Debug.Log("hit " + hit.point);
             HitCheck = false;
         }
         if (skill_op.target_ting == null)

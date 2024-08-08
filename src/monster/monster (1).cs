@@ -23,7 +23,7 @@ public class monster : MonoBehaviour
 
     private bool die = false;
     public bool damaged = false;
-    public bool damaged2 = false;
+    public bool damaged2 = false; // 텍스트 띄우기용 
     public bool isSword;
 
     public Transform cam;
@@ -107,17 +107,21 @@ public class monster : MonoBehaviour
     private void HandleDamage()
     {
         damaged2 = true;
+        damageText.fontSize = startFontSize;
+        elapsedTime = 0;
         damaged = true;
+
         monster_now_stat.hp -= player.player_stat.demege;
         Debug.Log($"받은 데미지: {player.player_stat.demege}");
         if (gameObject.tag != "boss")
         {
             StartCoroutine(attackStun());
+            StartCoroutine(RedEffect());
         }
-        StartCoroutine(RedEffect());
     }
     void damageDisplay() // 데미지 띄우기
     {
+        
         if (elapsedTime > shrinkDuration)
         {
             elapsedTime = 0;
@@ -135,8 +139,8 @@ public class monster : MonoBehaviour
     {
         monster_now_stat.speed = 0;
         yield return new WaitForSeconds(stun);
-        monster_now_stat.speed = originalSpeed;
         damaged = false;
+        monster_now_stat.speed = originalSpeed;
     }
     public IEnumerator RedEffect()
     {

@@ -24,7 +24,7 @@ public class MagicMonster : MonoBehaviour
     {
         if (monster.range >= monster.distance )
         {
-            // StartCoroutine(CastSpell(skill_ID[0])); // 003
+            StartCoroutine(CastSpell(skill_ID[0])); // 003
             if (monster.damaged)
             {
                 StartCoroutine(TelePort(skill_ID[1])); // 005
@@ -65,7 +65,6 @@ public class MagicMonster : MonoBehaviour
         {
             yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].after_delay));
         }
-
         if (sk_manager.skill_dict[ID].cool_time > 0)
         {
             yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].cool_time));
