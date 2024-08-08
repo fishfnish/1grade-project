@@ -23,6 +23,7 @@ public class monster : MonoBehaviour
 
     private bool die = false;
     public bool damaged = false;
+    public bool damaged2 = false;
     public bool isSword;
 
     public Transform cam;
@@ -60,8 +61,7 @@ public class monster : MonoBehaviour
         MonHpSlider.value = monster_now_stat.hp / maxhp;
         damageText.text = $"{player.player_stat.demege}";
 
-
-        if (damaged)
+        if (damaged2)
         {
             damageDisplay();
         }
@@ -106,6 +106,7 @@ public class monster : MonoBehaviour
     }
     private void HandleDamage()
     {
+        damaged2 = true;
         damaged = true;
         monster_now_stat.hp -= player.player_stat.demege;
         Debug.Log($"받은 데미지: {player.player_stat.demege}");
@@ -121,11 +122,11 @@ public class monster : MonoBehaviour
         {
             elapsedTime = 0;
             damageText.fontSize = 0;
+            damaged2 = false;
         }
         else
         {
             elapsedTime += Time.deltaTime;
-            Debug.Log(elapsedTime);
             float t = elapsedTime / shrinkDuration;
             damageText.fontSize = Mathf.Lerp(startFontSize, endFontSize, t);
         }
