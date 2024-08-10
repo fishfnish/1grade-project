@@ -8,6 +8,10 @@ using UnityEngine;
 
 public class Shield : MonoBehaviour
 {
+    public AudioClip attackClip;
+    public AudioClip parryClip;
+    public AudioClip dashClip;
+    public AudioSource AudioSource;
     public stats.stat stat;
     public monster monster;
     public player player;
@@ -38,7 +42,7 @@ public class Shield : MonoBehaviour
         monster = GetComponent<monster>();
         player = monster.player;
         sk_manager = monster.sk_manager;
-        
+
         original[0] = player.player_stat.demege;
         original[1] = monster.stun;
 
@@ -68,6 +72,7 @@ public class Shield : MonoBehaviour
             yield break;
         }
         can[0] = false;
+        monster.changeSoundClip(attackClip, AudioSource);
 
         monster.monster_now_stat.speed = 0;
         if (sk_manager.skill_dict[ID].before_delay > 0)
@@ -95,7 +100,8 @@ public class Shield : MonoBehaviour
     private IEnumerator PerformDash(string ID) // 대쉬 
     {
         can[1] = false;
-
+        monster.changeSoundClip(dashClip, AudioSource);
+        
         monster.monster_now_stat.speed = 0;
 
         Debug.Log("charging");
@@ -114,7 +120,7 @@ public class Shield : MonoBehaviour
             yield break;
         }
 
-       if (sk_manager.skill_dict[ID].life_time > 0)
+        if (sk_manager.skill_dict[ID].life_time > 0)
         {
             yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].life_time));
         }
@@ -134,11 +140,13 @@ public class Shield : MonoBehaviour
     }
     private IEnumerator parryStun() // 패링 스턴
     {
+        monster.changeSoundClip(parryClip, AudioSource);
+
         Destroy(dash);
 
         stat.is_dash = false;
         Debug.Log("dashEnd2");
-        
+
         monster.stun = shieldStun;
         player.player_stat.demege = player.player_stat.demege * damagePlus;
         yield return new WaitForSeconds(damagePlusTime);

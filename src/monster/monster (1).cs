@@ -10,7 +10,7 @@ using TMPro;
 
 public class monster : MonoBehaviour
 {
-    // test
+    public AudioClip walkClip;
     public stats.stat monster_now_stat;
     public skills_manager sk_manager;
     public GameObject target;
@@ -37,8 +37,6 @@ public class monster : MonoBehaviour
     // 몬스터 체력 UI
     public Slider MonHpSlider;
     public Canvas MonCan;
-
-    public float testDamage; // 테스트 용
 
     void Awake()
     {
@@ -161,5 +159,10 @@ public class monster : MonoBehaviour
             for (float i = delay; i > 0; i -= Time.deltaTime)
                 yield return new WaitForSeconds(Time.deltaTime);
         }
+    }
+    public void changeSoundClip(AudioClip audioClip, AudioSource audioSource)
+    {
+        audioSource.clip = audioClip;
+        audioSource.Play();
     }
 }
