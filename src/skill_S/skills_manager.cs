@@ -132,7 +132,7 @@ public class skills_manager : MonoBehaviour
             }
             else
             {
-                Debug.Log("is_cooldwon");
+                // Debug.Log("is_cooldwon");
                 return 1;
             }
         }

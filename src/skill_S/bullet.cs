@@ -16,10 +16,11 @@ public class bullet : MonoBehaviour
     RaycastHit hit;
     void Start()
     {
-        if (gameObject.tag != "Player")
+        if (skill_op.sp_pos.tag != "Player")
         {
             monster = skill_op.sp_pos.GetComponent<monster>();
             moveD = monster.monster_now_stat.move_D;
+            Debug.Log(moveD);
         }
     }
     // Update is called once per frame
@@ -37,13 +38,14 @@ public class bullet : MonoBehaviour
             // Debug.Log("hit " + hit.point);
             HitCheck = false;
         }
-        if (skill_op.target_ting == null)
+        if (skill_op.sp_pos.tag == "Player")
         {
+            Debug.Log("ddd");
             gameObject.transform.LookAt(hit.point);
             gameObject.transform.position = Vector3.MoveTowards(transform.position, hit.point, skill_op.speed * Time.deltaTime);
             // Debug.Log(hit.point);
         }
-        else if (skill_op.target_ting != null) // 몬스터 전용 불렛 
+        else  // 몬스터 전용 불렛 
         {
             transform.Translate(moveD * skill_op.speed * Time.deltaTime);
             // transform.position = Vector3.MoveTowards(transform.position, target + new Vector3(0f,1f,0f), skill_op.speed * Time.deltaTime);

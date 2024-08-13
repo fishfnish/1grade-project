@@ -11,21 +11,24 @@ public class Shield : MonoBehaviour
     public AudioClip attackClip;
     public AudioClip parryClip;
     public AudioClip dashClip;
-    public AudioSource AudioSource;
-    public stats.stat stat;
+    public AudioClip dashingClip;
+    public AudioSource audioSource;
     public monster monster;
     public player player;
     public dash dash;
     public skills_manager sk_manager;
-    private skills_manager.skill skill_op;
 
     public bool[] can = new bool[2]; // 0. 방패치기 1. 돌진
-    public float[] original = new float[2]; // 오리지널 0. 데미지 1. 스턴시간
 
     public bool isStun;
     public float shieldStun; // 패링 스턴
     public float damagePlus; // 데미지 배율
     public float damagePlusTime; // 데미지 배율 적용시간
+    public float originalSpeed; // 오리지널 스피드
+    public float originalDamage; // 오리지널 데미지
+    public float originalStun; // 오리지널 스턴
+    public float attackRange; // 방패치기 공격거리
+    public float dashRange; // 대쉬 공격거리
 
     public List<string> skill_ID = new List<string>();
 
@@ -34,78 +37,95 @@ public class Shield : MonoBehaviour
     void Start()
     {
         isStun = false;
-        stat.is_dash = false;
 
         can[0] = true;
         can[1] = true;
 
+        audioSource = GetComponent<AudioSource>();
         monster = GetComponent<monster>();
         player = monster.player;
         sk_manager = monster.sk_manager;
 
-        original[0] = player.player_stat.demege;
-        original[1] = monster.stun;
-
-        monster.monster_now_stat = stat;
-        monster.maxhp = stat.hp;
+        originalDamage = player.player_stat.demege;
+        originalStun = monster.stun;
+        originalSpeed = monster.monster_now_stat.speed;
+        monster.monster_now_stat.is_dash = false;
     }
     // Update is called once per frame
     void Update()
     {
-        if (monster != null && monster.range >= monster.distance)
+        if (monster != null)
         {
-            if (stat.is_dash && monster.isSword)
+            if (monster.monster_now_stat.is_dash && monster.isSword)
             {
                 StartCoroutine(parryStun());
                 monster.isSword = false;
             }
-            else if (can[1])
+            else
             {
-                StartCoroutine(PerformDash(skill_ID[1]));
+                if (can[1])
+                {
+                    if (dashRange >= monster.distance)
+                    {
+                        StartCoroutine(PerformDash(skill_ID[1]));
+                    }
+                }
+                if (can[0])
+                {
+                    if (attackRange >= monster.distance)
+                    {
+                        StartCoroutine(PerformAttack(skill_ID[0]));
+                    }
+                }
             }
         }
     }
     private IEnumerator PerformAttack(string ID) // 방패치기
     {
-        if (stat.is_dash)
+        if (monster.monster_now_stat.is_dash)
         {
             yield break;
         }
         can[0] = false;
-        monster.changeSoundClip(attackClip, AudioSource);
 
         monster.monster_now_stat.speed = 0;
         if (sk_manager.skill_dict[ID].before_delay > 0)
         {
             yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].before_delay));
         }
-        Debug.Log("attackStart");
 
+        monster.monster_now_stat.is_skill = true;
+        // monster.changeSoundClip(attackClip, audioSource, false);
+        audioSource.PlayOneShot(attackClip);
         sk_manager.use_skill(ID, gameObject);
-
+        Debug.Log("attackStart");
+        
+        if (sk_manager.skill_dict[ID].life_time > 0)
+        {
+            yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].life_time));
+        }
         if (sk_manager.skill_dict[ID].after_delay > 0)
         {
             yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].after_delay));
         }
         Debug.Log("attackEnd");
+        monster.monster_now_stat.is_skill = false;
+        monster.monster_now_stat.speed = originalSpeed;
+
         if (sk_manager.skill_dict[ID].cool_time > 0)
         {
             yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].cool_time));
         }
-
-        monster.monster_now_stat.speed = stat.speed;
-
         can[0] = true;
     }
     private IEnumerator PerformDash(string ID) // 대쉬 
     {
         can[1] = false;
-        monster.changeSoundClip(dashClip, AudioSource);
-        
-        monster.monster_now_stat.speed = 0;
 
+        monster.monster_now_stat.speed = 0;
         Debug.Log("charging");
-        stat.is_dash = true;
+
+        monster.monster_now_stat.is_dash = true;
         if (sk_manager.skill_dict[ID].before_delay > 0)
         {
             yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].before_delay));
@@ -120,18 +140,20 @@ public class Shield : MonoBehaviour
             yield break;
         }
 
+        monster.changeSoundClip(dashingClip, audioSource);
         if (sk_manager.skill_dict[ID].life_time > 0)
         {
             yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].life_time));
         }
-        Debug.Log("dashEnd");
-        stat.is_dash = false;
         if (sk_manager.skill_dict[ID].after_delay > 0)
         {
             yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].after_delay));
         }
 
-        monster.monster_now_stat.speed = stat.speed;
+        monster.monster_now_stat.is_dash = false;
+        monster.monster_now_stat.speed = originalSpeed;
+        Debug.Log("dashEnd");
+
         if (sk_manager.skill_dict[ID].cool_time > 0)
         {
             yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].cool_time));
@@ -140,28 +162,29 @@ public class Shield : MonoBehaviour
     }
     private IEnumerator parryStun() // 패링 스턴
     {
-        monster.changeSoundClip(parryClip, AudioSource);
+        audioSource.PlayOneShot(parryClip);
 
         Destroy(dash);
 
-        stat.is_dash = false;
+        monster.monster_now_stat.is_dash = false;
         Debug.Log("dashEnd2");
 
         monster.stun = shieldStun;
         player.player_stat.demege = player.player_stat.demege * damagePlus;
         yield return new WaitForSeconds(damagePlusTime);
 
-        player.player_stat.demege = original[0];
-        monster.stun = original[1];
+        player.player_stat.demege = originalDamage;
+        monster.stun = originalStun;
     }
-    private void OnCollisionStay(Collision other)
+    private void OnCollisionEnter(Collision other)
     {
         if (other.gameObject.tag == "Player")
         {
             Destroy(dash);
-            if (can[0])
+            if (monster.monster_now_stat.is_dash)
             {
-                StartCoroutine(PerformAttack(skill_ID[0]));
+                audioSource.PlayOneShot(dashClip);
+                // monster.changeSoundClip(dashClip, audioSource, false);
             }
         }
     }

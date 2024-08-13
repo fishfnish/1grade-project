@@ -7,24 +7,30 @@ using UnityEngine.AI;
 using static skills_manager;
 using UnityEngine.UI;
 using TMPro;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 public class monster : MonoBehaviour
 {
     public AudioClip walkClip;
+    public AudioSource audioSource;
     public stats.stat monster_now_stat;
     public skills_manager sk_manager;
     public GameObject target;
     public player player;
-    public float maxhp;
+
+    public float maxHp;
     public float range = 0;
     public float distance = 0;
+    public float pitch;
     public float stun;
+    public float monsterDamaged; // 데미지 받기
     public float originalSpeed;
 
     private bool die = false;
     public bool damaged = false;
     public bool damaged2 = false; // 텍스트 띄우기용 
     public bool isSword;
+    public bool audioPlayed;
 
     public Transform cam;
     private float elapsedTime;
@@ -40,10 +46,16 @@ public class monster : MonoBehaviour
 
     void Awake()
     {
+        audioPlayed = false;
+        maxHp = monster_now_stat.hp;
         originalSpeed = monster_now_stat.speed; // 스피드 저장
+
+        audioSource = GetComponent<AudioSource>();
         target = GameObject.FindGameObjectWithTag("Player");
         cam = Camera.main.transform;
-
+        damageText = GetComponentInChildren<TextMeshProUGUI>();
+        MonHpSlider = GetComponentInChildren<Slider>();
+        MonCan = GetComponentInChildren<Canvas>();
         damageText.fontSize = 0; // 초기 폰트 크기 설정
 
         if (sk_manager == null)
@@ -56,12 +68,12 @@ public class monster : MonoBehaviour
 
     void Update()
     {
-        MonHpSlider.value = monster_now_stat.hp / maxhp;
-        damageText.text = $"{player.player_stat.demege}";
+        MonHpSlider.value = monster_now_stat.hp / maxHp;
+        damageText.text = $"{monsterDamaged}";
 
         if (damaged2)
         {
-            damageDisplay();
+            DisplayDamageText();
         }
 
         // 카메라 따라가기
@@ -81,25 +93,29 @@ public class monster : MonoBehaviour
         direction = Vector3.Normalize(direction);
         monster_now_stat.move_D = direction;
         // Debug.Log("Direction: " + direction + " | Distance: " + distance);
-        if (range >= distance)
+        if (monster_now_stat.is_skill == false && monster_now_stat.is_dash == false)
         {
-
-            Quaternion targetrotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetrotation, monster_now_stat.rot_speed * Time.deltaTime);
-
-            transform.position += direction * monster_now_stat.speed * Time.deltaTime;
-            // Debug.Log(monster_now_stat.move_D);            
+            changeSoundClip(walkClip, audioSource);
+            audioSource.pitch = pitch;
         }
+        else 
+        {
+            audioSource.pitch = 1f;
+        }
+        Quaternion targetrotation = Quaternion.LookRotation(direction);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetrotation, monster_now_stat.rot_speed * Time.deltaTime);
+
+        transform.position += direction * monster_now_stat.speed * Time.deltaTime;
     }
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("bullet") || other.CompareTag("sword"))
         {
-            HandleDamage();
             if (other.CompareTag("sword"))
             {
                 isSword = true;
             }
+            HandleDamage();
         }
     }
     private void HandleDamage()
@@ -109,17 +125,17 @@ public class monster : MonoBehaviour
         elapsedTime = 0;
         damaged = true;
 
-        monster_now_stat.hp -= player.player_stat.demege;
-        Debug.Log($"받은 데미지: {player.player_stat.demege}");
-        if (gameObject.tag != "boss")
+        monster_now_stat.hp -= monsterDamaged;
+        Debug.Log($"받은 데미지: {monsterDamaged}");
+        if (gameObject.tag != "boss" && isSword)
         {
             StartCoroutine(attackStun());
             StartCoroutine(RedEffect());
         }
     }
-    void damageDisplay() // 데미지 띄우기
+    void DisplayDamageText() // 데미지 띄우기
     {
-        
+
         if (elapsedTime > shrinkDuration)
         {
             elapsedTime = 0;
@@ -155,14 +171,27 @@ public class monster : MonoBehaviour
     {
         if (delay > 0)
         {
-            // Debug.Log("time : " + Time.deltaTime);
-            for (float i = delay; i > 0; i -= Time.deltaTime)
-                yield return new WaitForSeconds(Time.deltaTime);
+            for (float i = delay; i > 0; i -= 0.1f)
+            {
+                // Debug.Log("delta : " + i);
+                yield return new WaitForSeconds(0.1f);
+            }
         }
     }
     public void changeSoundClip(AudioClip audioClip, AudioSource audioSource)
     {
-        audioSource.clip = audioClip;
-        audioSource.Play();
+        // 오디오가 아직 재생되지 않았을 경우
+        if (!audioPlayed)
+        {
+            audioSource.clip = audioClip;
+            audioSource.Play();
+            audioPlayed = true;  // 오디오가 재생되었음을 표시
+        }
+        // 오디오가 재생이 끝났을 경우
+        else if (!audioSource.isPlaying)
+        {
+            // 오디오 재생 상태를 초기화
+            audioPlayed = false;
+        }
     }
 }

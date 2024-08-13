@@ -58,7 +58,7 @@ public class skills : MonoBehaviour
                     animator.SetBool("attect", true);
                     animator.SetTrigger("next_at");
                 }
-                StartCoroutine(use_Skills_delay(skill_ID[3]));
+                StartCoroutine(use_Skills_delay(skill_ID[0]));
                 attect_combo = attect_combo >= 2 ? 0 : attect_combo + 1;
             }
         }
