@@ -42,6 +42,8 @@ public class monster : MonoBehaviour
     public int endFontSize;
     // 몬스터 체력 UI
     public Slider MonHpSlider;
+    public GameObject MainHpPanel;
+    public Slider MainHpSlider;
     public Canvas MonCan;
 
     void Awake()
@@ -64,6 +66,7 @@ public class monster : MonoBehaviour
             sk_manager = game_manager.GetComponent<skills_manager>();
         }
         player = target.GetComponent<player>();
+        MainHpPanel.SetActive(false);
     }
 
     void Update()
@@ -84,14 +87,21 @@ public class monster : MonoBehaviour
         // 죽음
         if (monster_now_stat.hp <= 0)
         {
+            MainHpPanel.SetActive(false);
             Destroy(gameObject);
             die = true;
         }
+
         Vector3 direction = target.transform.position - transform.position;
         direction.y = 0;
         distance = direction.magnitude;
         direction = Vector3.Normalize(direction);
         monster_now_stat.move_D = direction;
+
+        Quaternion targetrotation = Quaternion.LookRotation(direction);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetrotation, monster_now_stat.rot_speed * Time.deltaTime);
+        transform.position += direction * monster_now_stat.speed * Time.deltaTime;
+
         // Debug.Log("Direction: " + direction + " | Distance: " + distance);
         if (!monster_now_stat.is_skill && !monster_now_stat.is_dash)
         {
@@ -100,12 +110,8 @@ public class monster : MonoBehaviour
         }
         else
         {
-            // audioSource.pitch = 1f;
+            audioSource.pitch = 1f;
         }
-        Quaternion targetrotation = Quaternion.LookRotation(direction);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetrotation, monster_now_stat.rot_speed * Time.deltaTime);
-
-        transform.position += direction * monster_now_stat.speed * Time.deltaTime;
     }
     private void OnTriggerEnter(Collider other)
     {
@@ -120,6 +126,10 @@ public class monster : MonoBehaviour
     }
     private void HandleDamage()
     {
+        if (!MainHpPanel.activeSelf)
+        {
+            MainHpPanel.SetActive(true);
+        }
         damaged2 = true;
         damageText.fontSize = startFontSize;
         elapsedTime = 0;
@@ -132,6 +142,7 @@ public class monster : MonoBehaviour
             StartCoroutine(attackStun());
             StartCoroutine(RedEffect());
         }
+        MainHpSlider.value = monster_now_stat.hp / maxHp;
     }
     void DisplayDamageText() // 데미지 띄우기
     {
@@ -173,7 +184,6 @@ public class monster : MonoBehaviour
         {
             for (float i = delay; i > 0; i -= 0.1f)
             {
-                // Debug.Log("delta : " + i);
                 yield return new WaitForSeconds(0.1f);
             }
         }

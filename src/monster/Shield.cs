@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+// using System.Numerics;
 using JetBrains.Annotations;
 using TMPro;
 // using System.Numerics;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.InputSystem.Controls;
 
 public class Shield : MonoBehaviour
 {
@@ -21,6 +23,7 @@ public class Shield : MonoBehaviour
     public bool[] can = new bool[2]; // 0. 방패치기 1. 돌진
 
     public bool isStun;
+    public bool isKnockBack;
     public float shieldStun; // 패링 스턴
     public float damagePlus; // 데미지 배율
     public float damagePlusTime; // 데미지 배율 적용시간
@@ -29,6 +32,10 @@ public class Shield : MonoBehaviour
     public float originalStun; // 오리지널 스턴
     public float attackRange; // 방패치기 공격거리
     public float dashRange; // 대쉬 공격거리
+    public Vector3 PTP; // player.transform.position
+    public float knockBackDistance = 10f;
+    public float knockBackSpeed = 10f;
+
 
     public List<string> skill_ID = new List<string>();
 
@@ -36,6 +43,7 @@ public class Shield : MonoBehaviour
 
     void Start()
     {
+        isKnockBack = false;
         isStun = false;
 
         can[0] = true;
@@ -56,6 +64,17 @@ public class Shield : MonoBehaviour
     {
         if (monster != null)
         {
+            if (isKnockBack)
+            {
+                Vector3 targetPosition = PTP + monster.monster_now_stat.move_D * knockBackDistance;
+                Debug.Log("dd" + targetPosition);
+
+                player.transform.position = Vector3.MoveTowards(player.transform.position, targetPosition, knockBackSpeed * Time.deltaTime);
+                if (player.transform.position == targetPosition)
+                {
+                    isKnockBack = false;
+                }
+            }
             if (monster.monster_now_stat.is_dash && monster.isSword)
             {
                 StartCoroutine(parryStun());
@@ -67,7 +86,7 @@ public class Shield : MonoBehaviour
                 {
                     if (dashRange >= monster.distance)
                     {
-                        // StartCoroutine(PerformDash(skill_ID[1]));
+                        StartCoroutine(PerformDash(skill_ID[1]));
                     }
                 }
                 if (can[0])
@@ -98,7 +117,7 @@ public class Shield : MonoBehaviour
         monster.changeSoundClip(attackClip, audioSource);
         sk_manager.use_skill(ID, gameObject);
         Debug.Log("attackStart");
-        
+
         if (sk_manager.skill_dict[ID].life_time > 0)
         {
             yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].life_time));
@@ -177,13 +196,14 @@ public class Shield : MonoBehaviour
     }
     private void OnCollisionEnter(Collision other)
     {
-        if (other.gameObject.tag == "Player")
+        if (monster.monster_now_stat.is_dash)
         {
             Destroy(dash);
-            if (monster.monster_now_stat.is_dash)
+            if (other.gameObject.tag == "Player")
             {
-                audioSource.PlayOneShot(dashClip);
-                // monster.changeSoundClip(dashClip, audioSource, false);
+                isKnockBack = true;
+                PTP = other.transform.position;
+                monster.changeSoundClip(dashClip, audioSource);
             }
         }
     }

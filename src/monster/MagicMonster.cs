@@ -12,6 +12,7 @@ public class MagicMonster : MonoBehaviour
     public monster monster;
     public skills_manager sk_manager;
     public float bulletRange;
+    public bool can;
 
     public List<string> skill_ID = new List<string>();
 
@@ -21,6 +22,7 @@ public class MagicMonster : MonoBehaviour
         monster = GetComponent<monster>();
         sk_manager = monster.sk_manager;
         monster.monster_now_stat.is_skill = true; 
+        can = true;
     }
 
     void Update()
@@ -29,15 +31,18 @@ public class MagicMonster : MonoBehaviour
         {
             StartCoroutine(TelePort(skill_ID[1])); // 005
         }
-        else if (bulletRange >= monster.distance)
+        else if (can)
         {
-
-            StartCoroutine(CastSpell(skill_ID[0])); // 003
+            if (bulletRange >= monster.distance)
+            {
+                StartCoroutine(CastSpell(skill_ID[0])); // 003
+            }
         }
     }
 
     private IEnumerator CastSpell(string ID)
     {
+        can = false;
         // monster.monster_now_stat.is_skill = true;
         // monster.changeSoundClip(bulletInstantiateClip, audioSource);
         if (sk_manager.skill_dict[ID].before_delay > 0)
@@ -64,6 +69,7 @@ public class MagicMonster : MonoBehaviour
         {
             yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].cool_time));
         }
+        can = true;
     }
     private IEnumerator TelePort(string ID)
     {

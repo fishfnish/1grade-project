@@ -35,7 +35,7 @@ public class bullet : MonoBehaviour
             Vector3 input = Mouse.current.position.ReadValue();
             Ray ray = Camera.main.ScreenPointToRay(input);
             Physics.Raycast(ray, out hit);
-            // Debug.Log("hit " + hit.point);
+            Debug.Log("hit " + hit.point);
             HitCheck = false;
         }
         if (skill_op.sp_pos.tag == "Player")
@@ -47,7 +47,7 @@ public class bullet : MonoBehaviour
         }
         else  // 몬스터 전용 불렛 
         {
-            transform.Translate(moveD * skill_op.speed * Time.deltaTime);
+            transform.position += moveD * skill_op.speed * Time.deltaTime;
             // transform.position = Vector3.MoveTowards(transform.position, target + new Vector3(0f,1f,0f), skill_op.speed * Time.deltaTime);
         }
     }
