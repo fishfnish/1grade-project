@@ -93,14 +93,14 @@ public class monster : MonoBehaviour
         direction = Vector3.Normalize(direction);
         monster_now_stat.move_D = direction;
         // Debug.Log("Direction: " + direction + " | Distance: " + distance);
-        if (monster_now_stat.is_skill == false && monster_now_stat.is_dash == false)
+        if (!monster_now_stat.is_skill && !monster_now_stat.is_dash)
         {
             changeSoundClip(walkClip, audioSource);
-            audioSource.pitch = pitch;
+            // audioSource.pitch = pitch;
         }
-        else 
+        else
         {
-            audioSource.pitch = 1f;
+            // audioSource.pitch = 1f;
         }
         Quaternion targetrotation = Quaternion.LookRotation(direction);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetrotation, monster_now_stat.rot_speed * Time.deltaTime);
@@ -180,17 +180,19 @@ public class monster : MonoBehaviour
     }
     public void changeSoundClip(AudioClip audioClip, AudioSource audioSource)
     {
-        // 오디오가 아직 재생되지 않았을 경우
+        if (audioSource.isPlaying && audioSource.clip != audioClip)
+        {
+            audioSource.Stop();  
+            audioPlayed = false;
+        }
         if (!audioPlayed)
         {
             audioSource.clip = audioClip;
             audioSource.Play();
-            audioPlayed = true;  // 오디오가 재생되었음을 표시
+            audioPlayed = true;  
         }
-        // 오디오가 재생이 끝났을 경우
         else if (!audioSource.isPlaying)
         {
-            // 오디오 재생 상태를 초기화
             audioPlayed = false;
         }
     }

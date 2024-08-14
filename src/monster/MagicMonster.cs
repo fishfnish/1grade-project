@@ -6,88 +6,88 @@ using UnityEngine;
 
 public class MagicMonster : MonoBehaviour
 {
-    public monster monster;
-    public skills_manager sk_manager;
     public AudioSource audioSource;
     public AudioClip bulletInstantiateClip;// 마법 생성 음향
     public AudioClip bulletFireClip;// 마법 발사 음향
+    public monster monster;
+    public skills_manager sk_manager;
     public float bulletRange;
 
     public List<string> skill_ID = new List<string>();
 
     void Start()
     {
-        monster = GetComponent<monster>();
         audioSource = GetComponent<AudioSource>();
+        monster = GetComponent<monster>();
         sk_manager = monster.sk_manager;
+        monster.monster_now_stat.is_skill = true; 
     }
 
     void Update()
     {
         if (monster.damaged)
         {
-            TelePort(skill_ID[1]); // 005
+            StartCoroutine(TelePort(skill_ID[1])); // 005
         }
         else if (bulletRange >= monster.distance)
         {
 
-            CastSpell(skill_ID[0]); // 003
+            StartCoroutine(CastSpell(skill_ID[0])); // 003
         }
     }
 
-    void CastSpell(string ID)
+    private IEnumerator CastSpell(string ID)
     {
-        monster.monster_now_stat.is_skill = true;
-        // StartCoroutine(monster.changeSoundClip(bulletInstantiateClip, audioSource, false));
+        // monster.monster_now_stat.is_skill = true;
+        // monster.changeSoundClip(bulletInstantiateClip, audioSource);
         if (sk_manager.skill_dict[ID].before_delay > 0)
         {
-            monster.WaitForDelay(sk_manager.skill_dict[ID].before_delay);
+            yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].before_delay));
         }
 
         Debug.Log("instantiate");
         sk_manager.use_skill(ID, gameObject);
-        // audioSource.clip = bulletFireClip;
-        // monster.changeSoundClip(bulletFireClip, audioSource, false);
+        // audioSource.PlayOneShot(bulletFireClip);
+        monster.changeSoundClip(bulletFireClip, audioSource);
 
         if (sk_manager.skill_dict[ID].life_time > 0)
         {
-            monster.WaitForDelay(sk_manager.skill_dict[ID].life_time);
+            yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].life_time));
         }
         if (sk_manager.skill_dict[ID].after_delay > 0)
         {
-            monster.WaitForDelay(sk_manager.skill_dict[ID].after_delay);
+            yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].after_delay));
         }
 
-        Debug.Log("after : " + Time.deltaTime);
-        monster.monster_now_stat.is_skill = false;
+        // monster.monster_now_stat.is_skill = false;
         if (sk_manager.skill_dict[ID].cool_time > 0)
         {
-            monster.WaitForDelay(sk_manager.skill_dict[ID].cool_time);
+            yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].cool_time));
         }
     }
-    void TelePort(string ID)
+    private IEnumerator TelePort(string ID)
     {
         if (sk_manager.skill_dict[ID].before_delay > 0)
         {
-            monster.WaitForDelay(sk_manager.skill_dict[ID].before_delay);
+            yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].before_delay));
         }
 
-        monster.monster_now_stat.is_skill = true;
+        // monster.monster_now_stat.is_skill = true;
         Debug.Log("teleport");
         sk_manager.use_skill(ID, gameObject);
 
-        if (sk_manager.skill_dict[ID].after_delay > 0)
-        {
-            monster.WaitForDelay(sk_manager.skill_dict[ID].after_delay);
-        }
         if (sk_manager.skill_dict[ID].life_time > 0)
         {
-            monster.WaitForDelay(sk_manager.skill_dict[ID].life_time);
+            yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].life_time));
         }
-        monster.monster_now_stat.is_skill = false;
+        if (sk_manager.skill_dict[ID].after_delay > 0)
+        {
+            yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].after_delay));
+        }
+        // monster.monster_now_stat.is_skill = false;
         if (sk_manager.skill_dict[ID].cool_time > 0)
         {
-            monster.WaitForDelay(sk_manager.skill_dict[ID].cool_time);
+            yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].cool_time));
         }
     }
 }

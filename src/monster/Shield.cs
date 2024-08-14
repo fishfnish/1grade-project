@@ -67,7 +67,7 @@ public class Shield : MonoBehaviour
                 {
                     if (dashRange >= monster.distance)
                     {
-                        StartCoroutine(PerformDash(skill_ID[1]));
+                        // StartCoroutine(PerformDash(skill_ID[1]));
                     }
                 }
                 if (can[0])
@@ -95,8 +95,7 @@ public class Shield : MonoBehaviour
         }
 
         monster.monster_now_stat.is_skill = true;
-        // monster.changeSoundClip(attackClip, audioSource, false);
-        audioSource.PlayOneShot(attackClip);
+        monster.changeSoundClip(attackClip, audioSource);
         sk_manager.use_skill(ID, gameObject);
         Debug.Log("attackStart");
         
@@ -162,7 +161,7 @@ public class Shield : MonoBehaviour
     }
     private IEnumerator parryStun() // 패링 스턴
     {
-        audioSource.PlayOneShot(parryClip);
+        monster.changeSoundClip(parryClip, audioSource);
 
         Destroy(dash);
 
