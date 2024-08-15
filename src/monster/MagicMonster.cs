@@ -53,7 +53,7 @@ public class MagicMonster : MonoBehaviour
         Debug.Log("instantiate");
         sk_manager.use_skill(ID, gameObject);
         // audioSource.PlayOneShot(bulletFireClip);
-        monster.changeSoundClip(bulletFireClip, audioSource);
+        monster.changeSoundClip(bulletFireClip, audioSource, true);
 
         if (sk_manager.skill_dict[ID].life_time > 0)
         {

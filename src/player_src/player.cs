@@ -118,23 +118,4 @@ public class player : MonoBehaviour
         // transform.LookAt(hit_pos);
         // StartCoroutine(rot_skills(T_rot));
     }
-    public IEnumerator rot_skills(Quaternion t)
-    {
-        float test = t.eulerAngles.y - transform.rotation.eulerAngles.y;
-        while (test == 0)
-        {
-            transform.rotation = Quaternion.Slerp(transform.rotation, t, player_stat.rot_speed*Time.deltaTime);
-            test = t.eulerAngles.y - transform.rotation.eulerAngles.y;
-            yield return null;
-        }
-    }
-    private void OnCollisionEnter(Collision other) {
-        
-    }
-    public IEnumerator strun(float time){
-        player_stat.is_sturn = true;
-        for(float i = time; i>0 ;i-=Time.deltaTime)
-                yield return new WaitForSeconds(Time.deltaTime);
-        player_stat.is_sturn = false;
-    }
 }

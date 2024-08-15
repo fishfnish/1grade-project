@@ -13,7 +13,7 @@ public class Shield : MonoBehaviour
     public AudioClip attackClip;
     public AudioClip parryClip;
     public AudioClip dashClip;
-    public AudioClip dashingClip;
+    // public AudioClip dashingClip;
     public AudioSource audioSource;
     public monster monster;
     public player player;
@@ -114,7 +114,7 @@ public class Shield : MonoBehaviour
         }
 
         monster.monster_now_stat.is_skill = true;
-        monster.changeSoundClip(attackClip, audioSource);
+        monster.changeSoundClip(attackClip, audioSource, false);
         sk_manager.use_skill(ID, gameObject);
         Debug.Log("attackStart");
 
@@ -158,7 +158,7 @@ public class Shield : MonoBehaviour
             yield break;
         }
 
-        monster.changeSoundClip(dashingClip, audioSource);
+        // monster.changeSoundClip(dashingClip, audioSource,);
         if (sk_manager.skill_dict[ID].life_time > 0)
         {
             yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].life_time));
@@ -180,7 +180,7 @@ public class Shield : MonoBehaviour
     }
     private IEnumerator parryStun() // 패링 스턴
     {
-        monster.changeSoundClip(parryClip, audioSource);
+        monster.changeSoundClip(parryClip, audioSource, false);
 
         Destroy(dash);
 
@@ -203,7 +203,7 @@ public class Shield : MonoBehaviour
             {
                 isKnockBack = true;
                 PTP = other.transform.position;
-                monster.changeSoundClip(dashClip, audioSource);
+                monster.changeSoundClip(dashClip, audioSource, false);
             }
         }
     }

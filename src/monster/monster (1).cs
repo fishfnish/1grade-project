@@ -15,6 +15,7 @@ public class monster : MonoBehaviour
     public AudioSource audioSource;
     public stats.stat monster_now_stat;
     public skills_manager sk_manager;
+    public skills_manager damageSkillManager;
     public GameObject target;
     public player player;
 
@@ -105,13 +106,17 @@ public class monster : MonoBehaviour
         // Debug.Log("Direction: " + direction + " | Distance: " + distance);
         if (!monster_now_stat.is_skill && !monster_now_stat.is_dash)
         {
-            changeSoundClip(walkClip, audioSource);
+            changeSoundClip(walkClip, audioSource, true);
             // audioSource.pitch = pitch;
         }
         else
         {
             audioSource.pitch = 1f;
         }
+    }
+    private void onDamage(float damage)
+    {
+        monsterDamaged = damage;
     }
     private void OnTriggerEnter(Collider other)
     {
@@ -188,22 +193,31 @@ public class monster : MonoBehaviour
             }
         }
     }
-    public void changeSoundClip(AudioClip audioClip, AudioSource audioSource)
+    public void changeSoundClip(AudioClip audioClip, AudioSource audioSource, bool repeat)
     {
-        if (audioSource.isPlaying && audioSource.clip != audioClip)
+        if (Time.timeScale > 0)
         {
-            audioSource.Stop();  
-            audioPlayed = false;
-        }
-        if (!audioPlayed)
-        {
-            audioSource.clip = audioClip;
-            audioSource.Play();
-            audioPlayed = true;  
-        }
-        else if (!audioSource.isPlaying)
-        {
-            audioPlayed = false;
+            if (audioSource.clip != audioClip)
+            {
+                if (audioSource.isPlaying)
+                {
+                    audioSource.Stop();
+                }
+                audioPlayed = false;
+            }
+            if (!audioPlayed)
+            {
+                audioSource.clip = audioClip;
+                audioSource.Play();
+                audioPlayed = true;
+            }
+            else if (!audioSource.isPlaying)
+            {
+                if (repeat)
+                {
+                    audioPlayed = false;
+                }
+            }
         }
     }
 }

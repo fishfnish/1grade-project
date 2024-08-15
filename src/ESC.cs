@@ -15,6 +15,7 @@ public class ESC : MonoBehaviour
     public GameObject VolumePanel;
     public GameObject ScreenSizePanel;
     public AudioSource BGM;
+    public AudioSource SFX;
     // 볼륨
     public AudioMixer GameMixer;
     public Slider MasterAudioSlider;
