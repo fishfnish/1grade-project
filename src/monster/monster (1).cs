@@ -11,12 +11,13 @@ using System.Runtime.InteropServices.WindowsRuntime;
 
 public class monster : MonoBehaviour
 {
-    public AudioClip walkClip;
-    public AudioSource audioSource;
+    //public AudioClip walkClip;
+    //public AudioSource audioSource;
     public stats.stat monster_now_stat;
     public skills_manager sk_manager;
     public GameObject target;
     public player player;
+    public Animator anim;
 
     public float maxHp;
     public float range = 0;
@@ -41,47 +42,42 @@ public class monster : MonoBehaviour
     public int startFontSize; // 시작 폰트 크기
     public int endFontSize;
     // 몬스터 체력 UI
-    public GameObject MonCanGameObject;
     public Slider MonHpSlider;
+    //public GameObject MainHpPanel;
+    //public Slider MainHpSlider;
     public Canvas MonCan;
 
     void Awake()
     {
-        audioSource = GetComponent<AudioSource>();
+        audioPlayed = false;
+        maxHp = monster_now_stat.hp;
+        originalSpeed = monster_now_stat.speed; // 스피드 저장
+        anim = GetComponent<Animator>();
+
+        //audioSource = GetComponent<AudioSource>();
         target = GameObject.FindGameObjectWithTag("Player");
-        player = target.GetComponent<player>();
         cam = Camera.main.transform;
         damageText = GetComponentInChildren<TextMeshProUGUI>();
         MonHpSlider = GetComponentInChildren<Slider>();
-        MonCanGameObject = transform.GetChild(0).gameObject;
         MonCan = GetComponentInChildren<Canvas>();
+        damageText.fontSize = 0; // 초기 폰트 크기 설정
+
         if (sk_manager == null)
         {
             GameObject game_manager = GameObject.Find("gamemanager");
             sk_manager = game_manager.GetComponent<skills_manager>();
         }
-
-        audioPlayed = false;
-        maxHp = monster_now_stat.hp;
-        originalSpeed = monster_now_stat.speed; // 스피드 저장
-        damageText.fontSize = 0; // 초기 폰트 크기 설정
-        MonCanGameObject.SetActive(false);
+        player = target.GetComponent<player>();
+        //MainHpPanel.SetActive(false);
+        Vector3 direction = target.transform.position - transform.position;
+        direction.y = 0;
+        distance = direction.magnitude;
+        direction = Vector3.Normalize(direction);
+        monster_now_stat.move_D = direction;
     }
 
     void Update()
     {
-        // 죽음
-        if (monster_now_stat.hp <= 0)
-        {
-            Destroy(gameObject);
-            die = true;
-        }
-
-        if (damaged2)
-        {
-            DisplayDamageText();
-        }
-
         Vector3 direction = target.transform.position - transform.position;
         direction.y = 0;
         distance = direction.magnitude;
@@ -95,32 +91,39 @@ public class monster : MonoBehaviour
         MonHpSlider.value = monster_now_stat.hp / maxHp;
         damageText.text = $"{monsterDamaged}";
 
-        if (damaged)
+        if (damaged2)
         {
-            MonCanGameObject.SetActive(true);
+            DisplayDamageText();
         }
+
+        // 카메라 따라가기
         MonCan.transform.LookAt(cam);
         // damageText.transform.LookAt(cam);
         // transform.position + cam.rotation * Vector3.forward, cam.rotation * Vector3.up
 
-        if (!monster_now_stat.is_skill && !monster_now_stat.is_dash)
+        // 죽음
+        if (monster_now_stat.hp <= 0)
         {
-            changeSoundClip(walkClip, audioSource, true);
-            // audioSource.pitch = pitch;
+            Destroy(gameObject);
+            die = true;
         }
-        else
-        {
-            audioSource.pitch = 1f;
-        }
-    }
-    private void onDamage(float damage)
-    {
-        monsterDamaged = damage;
+
+        // Debug.Log("Direction: " + direction + " | Distance: " + distance);
+        //if (!monster_now_stat.is_skill && !monster_now_stat.is_dash)
+        //{
+        //    changeSoundClip(walkClip, audioSource);
+        //    // audioSource.pitch = pitch;
+        //}
+        //else
+        //{
+        //    audioSource.pitch = 1f;
+        //}
     }
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("bullet") || other.CompareTag("sword"))
         {
+            monster_now_stat.speed = 0;
             if (other.CompareTag("sword"))
             {
                 isSword = true;
@@ -130,18 +133,24 @@ public class monster : MonoBehaviour
     }
     private void HandleDamage()
     {
+        //if (!MainHpPanel.activeSelf)
+        //{
+        //    MainHpPanel.SetActive(true);
+        //}
         damaged2 = true;
         damageText.fontSize = startFontSize;
         elapsedTime = 0;
         damaged = true;
 
         monster_now_stat.hp -= monsterDamaged;
+        monster_now_stat.speed = 0;
         Debug.Log($"받은 데미지: {monsterDamaged}");
-        if (gameObject.tag != "boss" && isSword)
+        if (gameObject.tag != "boss")
         {
             StartCoroutine(attackStun());
             StartCoroutine(RedEffect());
         }
+        //MainHpSlider.value = MonHpSlider.value;
     }
     void DisplayDamageText() // 데미지 띄우기
     {
@@ -161,9 +170,11 @@ public class monster : MonoBehaviour
     }
     private IEnumerator attackStun() // 공격 스턴
     {
-        monster_now_stat.speed = 0;
+        anim.SetBool("Is_hit", true);
+        
         yield return new WaitForSeconds(stun);
         damaged = false;
+        anim.SetBool("Is_hit", false);
         monster_now_stat.speed = originalSpeed;
     }
     public IEnumerator RedEffect()
@@ -187,16 +198,11 @@ public class monster : MonoBehaviour
             }
         }
     }
-    public void changeSoundClip(AudioClip audioClip, AudioSource audioSource, bool repeat)
+    public void changeSoundClip(AudioClip audioClip, AudioSource audioSource)
     {
-        if (Time.timeScale <= 0) return;
-
-        if (audioSource.clip != audioClip)
+        if (audioSource.isPlaying && audioSource.clip != audioClip)
         {
-            if (audioSource.isPlaying)
-            {
-                audioSource.Stop();
-            }
+            audioSource.Stop();
             audioPlayed = false;
         }
         if (!audioPlayed)
@@ -207,11 +213,7 @@ public class monster : MonoBehaviour
         }
         else if (!audioSource.isPlaying)
         {
-            if (repeat)
-            {
-                audioPlayed = false;
-            }
+            audioPlayed = false;
         }
-
     }
 }

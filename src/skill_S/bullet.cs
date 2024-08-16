@@ -12,6 +12,7 @@ public class bullet : MonoBehaviour
     public skills_manager.skill skill_op;
     public monster monster;
     public Vector3 moveD;
+   
     bool HitCheck = true;
     RaycastHit hit;
     void Start()
@@ -19,7 +20,7 @@ public class bullet : MonoBehaviour
         if (skill_op.sp_pos.tag != "Player")
         {
             monster = skill_op.sp_pos.GetComponent<monster>();
-            moveD = monster.monster_now_stat.move_D;
+            moveD = monster.monster_now_stat.move_D;            
             Debug.Log(moveD);
         }
     }
@@ -35,11 +36,12 @@ public class bullet : MonoBehaviour
             Vector3 input = Mouse.current.position.ReadValue();
             Ray ray = Camera.main.ScreenPointToRay(input);
             Physics.Raycast(ray, out hit);
-            Debug.Log("hit " + hit.point);
+            // Debug.Log("hit " + hit.point);
             HitCheck = false;
         }
         if (skill_op.sp_pos.tag == "Player")
         {
+            Debug.Log("ddd");
             gameObject.transform.LookAt(hit.point);
             gameObject.transform.position = Vector3.MoveTowards(transform.position, hit.point, skill_op.speed * Time.deltaTime);
             // Debug.Log(hit.point);

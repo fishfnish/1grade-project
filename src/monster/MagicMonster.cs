@@ -7,9 +7,10 @@ using UnityEngine;
 public class MagicMonster : MonoBehaviour
 {
     public AudioSource audioSource;
-    public AudioClip bulletInstantiateClip;// ë§ˆë²• ìƒì„± ìŒí–¥
-    public AudioClip bulletFireClip;// ë§ˆë²• ë°œì‚¬ ìŒí–¥
+    public AudioClip bulletInstantiateClip;// ¸¶¹ı »ı¼º À½Çâ
+    public AudioClip bulletFireClip;// ¸¶¹ı ¹ß»ç À½Çâ
     public monster monster;
+    public Animator anim;
     public skills_manager sk_manager;
     public float bulletRange;
     public bool can;
@@ -20,8 +21,9 @@ public class MagicMonster : MonoBehaviour
     {
         audioSource = GetComponent<AudioSource>();
         monster = GetComponent<monster>();
+        anim = GetComponent<Animator>();
         sk_manager = monster.sk_manager;
-        monster.monster_now_stat.is_skill = true; 
+        monster.monster_now_stat.is_skill = true;
         can = true;
     }
 
@@ -33,18 +35,24 @@ public class MagicMonster : MonoBehaviour
         }
         else if (can)
         {
+            anim.SetBool("Is_run", true);
             if (bulletRange >= monster.distance)
-            {
+            {                
                 StartCoroutine(CastSpell(skill_ID[0])); // 003
             }
         }
+
     }
 
     private IEnumerator CastSpell(string ID)
     {
         can = false;
+        monster.monster_now_stat.speed = 0;
+        
         // monster.monster_now_stat.is_skill = true;
-        // monster.changeSoundClip(bulletInstantiateClip, audioSource);
+        // monster.changeSoundClip(bulletInstantiateClip, audioSource);     
+        anim.SetBool("Is_run", false);
+        anim.SetBool("Is_casting",true);
         if (sk_manager.skill_dict[ID].before_delay > 0)
         {
             yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].before_delay));
@@ -53,8 +61,7 @@ public class MagicMonster : MonoBehaviour
         Debug.Log("instantiate");
         sk_manager.use_skill(ID, gameObject);
         // audioSource.PlayOneShot(bulletFireClip);
-        monster.changeSoundClip(bulletFireClip, audioSource, true);
-
+        //monster.changeSoundClip(bulletFireClip, audioSource);
         if (sk_manager.skill_dict[ID].life_time > 0)
         {
             yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].life_time));
@@ -69,6 +76,9 @@ public class MagicMonster : MonoBehaviour
         {
             yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].cool_time));
         }
+        monster.monster_now_stat.speed = monster.originalSpeed;
+
+        anim.SetBool("Is_casting", false);
         can = true;
     }
     private IEnumerator TelePort(string ID)

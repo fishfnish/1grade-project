@@ -7,18 +7,20 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem.Controls;
+using UnityEngine.Rendering.HighDefinition;
 
 public class Shield : MonoBehaviour
 {
     public AudioClip attackClip;
     public AudioClip parryClip;
     public AudioClip dashClip;
-    // public AudioClip dashingClip;
+    public AudioClip dashingClip;
     public AudioSource audioSource;
     public monster monster;
     public player player;
     public dash dash;
     public skills_manager sk_manager;
+    public Animator anim;
 
     public bool[] can = new bool[2]; // 0. 방패치기 1. 돌진
 
@@ -28,6 +30,7 @@ public class Shield : MonoBehaviour
     public float damagePlus; // 데미지 배율
     public float damagePlusTime; // 데미지 배율 적용시간
     public float originalSpeed; // 오리지널 스피드
+    public float originalDamage; // 오리지널 데미지
     public float originalStun; // 오리지널 스턴
     public float attackRange; // 방패치기 공격거리
     public float dashRange; // 대쉬 공격거리
@@ -52,7 +55,8 @@ public class Shield : MonoBehaviour
         monster = GetComponent<monster>();
         player = monster.player;
         sk_manager = monster.sk_manager;
-
+        anim = GetComponent<Animator>();
+        originalDamage = player.player_stat.demege;
         originalStun = monster.stun;
         originalSpeed = monster.monster_now_stat.speed;
         monster.monster_now_stat.is_dash = false;
@@ -65,13 +69,22 @@ public class Shield : MonoBehaviour
             if (isKnockBack)
             {
                 Vector3 targetPosition = PTP + monster.monster_now_stat.move_D * knockBackDistance;
-                Debug.Log("dd" + targetPosition);
+
 
                 player.transform.position = Vector3.MoveTowards(player.transform.position, targetPosition, knockBackSpeed * Time.deltaTime);
                 if (player.transform.position == targetPosition)
                 {
                     isKnockBack = false;
                 }
+            }
+            if (!monster.monster_now_stat.is_skill && !monster.monster_now_stat.is_dash)
+            {
+                anim.SetBool("Is_run", true);
+                anim.SetBool("Is_attck", false);
+            }
+            else if (monster.monster_now_stat.is_skill || monster.monster_now_stat.is_dash)
+            {
+                anim.SetBool("Is_run", false);
             }
             if (monster.monster_now_stat.is_dash && monster.isSword)
             {
@@ -99,12 +112,15 @@ public class Shield : MonoBehaviour
     }
     private IEnumerator PerformAttack(string ID) // 방패치기
     {
-        if (monster.monster_now_stat.is_dash)
+
+        if (monster.monster_now_stat.is_dash == true)
         {
+            anim.SetBool("Is_attack", true);
             yield break;
         }
         can[0] = false;
-
+        anim.SetBool("Is_run", false);
+        anim.SetBool("Is_attack", true);
         monster.monster_now_stat.speed = 0;
         if (sk_manager.skill_dict[ID].before_delay > 0)
         {
@@ -112,7 +128,7 @@ public class Shield : MonoBehaviour
         }
 
         monster.monster_now_stat.is_skill = true;
-        monster.changeSoundClip(attackClip, audioSource, false);
+        monster.changeSoundClip(attackClip, audioSource);
         sk_manager.use_skill(ID, gameObject);
         Debug.Log("attackStart");
 
@@ -132,53 +148,64 @@ public class Shield : MonoBehaviour
         {
             yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].cool_time));
         }
+        anim.SetBool("Is_attack", false);
         can[0] = true;
+
     }
     private IEnumerator PerformDash(string ID) // 대쉬 
     {
-        can[1] = false;
-
-        monster.monster_now_stat.speed = 0;
-        Debug.Log("charging");
-
-        monster.monster_now_stat.is_dash = true;
-        if (sk_manager.skill_dict[ID].before_delay > 0)
+        if (monster.monster_now_stat.is_skill == false)
         {
-            yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].before_delay));
-        }
+            anim.SetBool("Is_attack", false);
+            can[1] = false;
+            float rot_speed = monster.monster_now_stat.rot_speed;
+            monster.monster_now_stat.speed = 0;
+            Debug.Log("charging");
+            anim.SetBool("Is_charge", true);
+            monster.monster_now_stat.is_dash = true;
+            if (sk_manager.skill_dict[ID].before_delay > 0)
+            {
+                yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].before_delay));
+            }
+            monster.monster_now_stat.rot_speed = 0;
+            anim.SetBool("Is_charge", false);
+            anim.SetBool("Is_dash", true);
+            Debug.Log("dashStart");
+            sk_manager.use_skill(ID, gameObject);
+            dash = GetComponent<dash>();
 
-        Debug.Log("dashStart");
-        sk_manager.use_skill(ID, gameObject);
-        dash = GetComponent<dash>();
+            if (monster.damaged)
+            {
+                yield break;
+            }
 
-        if (monster.damaged)
-        {
-            yield break;
-        }
+            monster.changeSoundClip(dashingClip, audioSource);
+            if (sk_manager.skill_dict[ID].life_time > 0)
+            {
+                yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].life_time));
+            }
+            if (sk_manager.skill_dict[ID].after_delay > 0)
+            {
+                yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].after_delay));
+            }
 
-        // monster.changeSoundClip(dashingClip, audioSource,);
-        if (sk_manager.skill_dict[ID].life_time > 0)
-        {
-            yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].life_time));
-        }
-        if (sk_manager.skill_dict[ID].after_delay > 0)
-        {
-            yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].after_delay));
-        }
+            monster.monster_now_stat.is_dash = false;
+            monster.monster_now_stat.speed = originalSpeed;
+            anim.SetBool("Is_dash", false);
+            monster.monster_now_stat.rot_speed = rot_speed;
+            Debug.Log("dashEnd");
 
-        monster.monster_now_stat.is_dash = false;
-        monster.monster_now_stat.speed = originalSpeed;
-        Debug.Log("dashEnd");
-
-        if (sk_manager.skill_dict[ID].cool_time > 0)
-        {
-            yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].cool_time));
+            if (sk_manager.skill_dict[ID].cool_time > 0)
+            {
+                yield return StartCoroutine(monster.WaitForDelay(sk_manager.skill_dict[ID].cool_time));
+            }
+            can[1] = true;
         }
-        can[1] = true;
     }
     private IEnumerator parryStun() // 패링 스턴
     {
-        monster.changeSoundClip(parryClip, audioSource, false);
+
+        monster.changeSoundClip(parryClip, audioSource);
 
         Destroy(dash);
 
@@ -189,6 +216,7 @@ public class Shield : MonoBehaviour
         player.player_stat.demege = player.player_stat.demege * damagePlus;
         yield return new WaitForSeconds(damagePlusTime);
 
+        player.player_stat.demege = originalDamage;
         monster.stun = originalStun;
     }
     private void OnCollisionEnter(Collision other)
@@ -200,7 +228,7 @@ public class Shield : MonoBehaviour
             {
                 isKnockBack = true;
                 PTP = other.transform.position;
-                monster.changeSoundClip(dashClip, audioSource, false);
+                monster.changeSoundClip(dashClip, audioSource);
             }
         }
     }

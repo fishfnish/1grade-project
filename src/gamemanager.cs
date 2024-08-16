@@ -20,7 +20,6 @@ public class gamemanager : MonoBehaviour
     public TextMeshProUGUI game_over_txt;
 
     public static bool GameOver = false;
-    public bool audioPlayed;
     public float time;
     void Start()
     {
@@ -41,32 +40,6 @@ public class gamemanager : MonoBehaviour
         // Debug.Log(pns.now_hp);
         // Debug.Log(pc);
     }
-    public void changeSoundClip(AudioClip audioClip, AudioSource audioSource, bool repeat)
-    {
-        if (Time.timeScale > 0)
-        {
-            if (audioSource.clip != audioClip)
-            {
-                if (audioSource.isPlaying)
-                {
-                    audioSource.Stop();
-                }
-                audioPlayed = false;
-            }
-            if (!audioPlayed)
-            {
-                audioSource.clip = audioClip;
-                audioSource.Play();
-                audioPlayed = true;
-            }
-            else if (!audioSource.isPlaying)
-            {
-                if (repeat)
-                {
-                    audioPlayed = false;
-                }
-            }
-        }
-    }
+    
     
 }

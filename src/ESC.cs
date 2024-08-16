@@ -15,6 +15,7 @@ public class ESC : MonoBehaviour
     public GameObject VolumePanel;
     public GameObject ScreenSizePanel;
     public AudioSource BGM;
+    public AudioSource SFX;
     // 볼륨
     public AudioMixer GameMixer;
     public Slider MasterAudioSlider;
@@ -29,7 +30,6 @@ public class ESC : MonoBehaviour
     void Start()
     {
         GameIsPaused = false;
-        Debug.Log(GameIsPaused);
         ESCpanel.SetActive(false);
         VolumePanel.SetActive(false);
         ScreenSizePanel.SetActive(false);
@@ -109,6 +109,7 @@ public class ESC : MonoBehaviour
         Debug.Log("Pause");
         ESCpanel.SetActive(true);
         BGM.Pause();
+        SFX.Pause();
         Time.timeScale = 0f;
         GameIsPaused = true;
     }
@@ -117,6 +118,7 @@ public class ESC : MonoBehaviour
         Debug.Log("Resume");
         ESCpanel.SetActive(false);
         BGM.UnPause();
+        SFX.UnPause();
         Time.timeScale = 1f;
         GameIsPaused = false;
     }
