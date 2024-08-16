@@ -15,7 +15,6 @@ public class monster : MonoBehaviour
     public AudioSource audioSource;
     public stats.stat monster_now_stat;
     public skills_manager sk_manager;
-    public skills_manager damageSkillManager;
     public GameObject target;
     public player player;
 
@@ -42,55 +41,45 @@ public class monster : MonoBehaviour
     public int startFontSize; // 시작 폰트 크기
     public int endFontSize;
     // 몬스터 체력 UI
+    public GameObject MonCanGameObject;
     public Slider MonHpSlider;
-    public GameObject MainHpPanel;
-    public Slider MainHpSlider;
     public Canvas MonCan;
 
     void Awake()
     {
-        audioPlayed = false;
-        maxHp = monster_now_stat.hp;
-        originalSpeed = monster_now_stat.speed; // 스피드 저장
-
         audioSource = GetComponent<AudioSource>();
         target = GameObject.FindGameObjectWithTag("Player");
+        player = target.GetComponent<player>();
         cam = Camera.main.transform;
         damageText = GetComponentInChildren<TextMeshProUGUI>();
         MonHpSlider = GetComponentInChildren<Slider>();
+        MonCanGameObject = transform.GetChild(0).gameObject;
         MonCan = GetComponentInChildren<Canvas>();
-        damageText.fontSize = 0; // 초기 폰트 크기 설정
-
         if (sk_manager == null)
         {
             GameObject game_manager = GameObject.Find("gamemanager");
             sk_manager = game_manager.GetComponent<skills_manager>();
         }
-        player = target.GetComponent<player>();
-        MainHpPanel.SetActive(false);
+
+        audioPlayed = false;
+        maxHp = monster_now_stat.hp;
+        originalSpeed = monster_now_stat.speed; // 스피드 저장
+        damageText.fontSize = 0; // 초기 폰트 크기 설정
+        MonCanGameObject.SetActive(false);
     }
 
     void Update()
     {
-        MonHpSlider.value = monster_now_stat.hp / maxHp;
-        damageText.text = $"{monsterDamaged}";
+        // 죽음
+        if (monster_now_stat.hp <= 0)
+        {
+            Destroy(gameObject);
+            die = true;
+        }
 
         if (damaged2)
         {
             DisplayDamageText();
-        }
-
-        // 카메라 따라가기
-        MonCan.transform.LookAt(cam);
-        // damageText.transform.LookAt(cam);
-        // transform.position + cam.rotation * Vector3.forward, cam.rotation * Vector3.up
-
-        // 죽음
-        if (monster_now_stat.hp <= 0)
-        {
-            MainHpPanel.SetActive(false);
-            Destroy(gameObject);
-            die = true;
         }
 
         Vector3 direction = target.transform.position - transform.position;
@@ -103,7 +92,17 @@ public class monster : MonoBehaviour
         transform.rotation = Quaternion.Slerp(transform.rotation, targetrotation, monster_now_stat.rot_speed * Time.deltaTime);
         transform.position += direction * monster_now_stat.speed * Time.deltaTime;
 
-        // Debug.Log("Direction: " + direction + " | Distance: " + distance);
+        MonHpSlider.value = monster_now_stat.hp / maxHp;
+        damageText.text = $"{monsterDamaged}";
+
+        if (damaged)
+        {
+            MonCanGameObject.SetActive(true);
+        }
+        MonCan.transform.LookAt(cam);
+        // damageText.transform.LookAt(cam);
+        // transform.position + cam.rotation * Vector3.forward, cam.rotation * Vector3.up
+
         if (!monster_now_stat.is_skill && !monster_now_stat.is_dash)
         {
             changeSoundClip(walkClip, audioSource, true);
@@ -131,10 +130,6 @@ public class monster : MonoBehaviour
     }
     private void HandleDamage()
     {
-        if (!MainHpPanel.activeSelf)
-        {
-            MainHpPanel.SetActive(true);
-        }
         damaged2 = true;
         damageText.fontSize = startFontSize;
         elapsedTime = 0;
@@ -147,7 +142,6 @@ public class monster : MonoBehaviour
             StartCoroutine(attackStun());
             StartCoroutine(RedEffect());
         }
-        MainHpSlider.value = monster_now_stat.hp / maxHp;
     }
     void DisplayDamageText() // 데미지 띄우기
     {
@@ -195,29 +189,29 @@ public class monster : MonoBehaviour
     }
     public void changeSoundClip(AudioClip audioClip, AudioSource audioSource, bool repeat)
     {
-        if (Time.timeScale > 0)
+        if (Time.timeScale <= 0) return;
+
+        if (audioSource.clip != audioClip)
         {
-            if (audioSource.clip != audioClip)
+            if (audioSource.isPlaying)
             {
-                if (audioSource.isPlaying)
-                {
-                    audioSource.Stop();
-                }
+                audioSource.Stop();
+            }
+            audioPlayed = false;
+        }
+        if (!audioPlayed)
+        {
+            audioSource.clip = audioClip;
+            audioSource.Play();
+            audioPlayed = true;
+        }
+        else if (!audioSource.isPlaying)
+        {
+            if (repeat)
+            {
                 audioPlayed = false;
             }
-            if (!audioPlayed)
-            {
-                audioSource.clip = audioClip;
-                audioSource.Play();
-                audioPlayed = true;
-            }
-            else if (!audioSource.isPlaying)
-            {
-                if (repeat)
-                {
-                    audioPlayed = false;
-                }
-            }
         }
+
     }
 }

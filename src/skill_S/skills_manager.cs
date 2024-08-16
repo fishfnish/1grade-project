@@ -40,7 +40,7 @@ public class skills_manager : MonoBehaviour
 
     public Dictionary<string, skill> skill_dict = new Dictionary<string, skill>();
     [Space(20f)]
-    private Dictionary<string, float> cooldownTimers;
+    public Dictionary<string, float> cooldownTimers;
     // public skiils skiils_option;
     void Start()
     {

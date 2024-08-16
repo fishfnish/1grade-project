@@ -40,7 +40,6 @@ public class bullet : MonoBehaviour
         }
         if (skill_op.sp_pos.tag == "Player")
         {
-            Debug.Log("ddd");
             gameObject.transform.LookAt(hit.point);
             gameObject.transform.position = Vector3.MoveTowards(transform.position, hit.point, skill_op.speed * Time.deltaTime);
             // Debug.Log(hit.point);

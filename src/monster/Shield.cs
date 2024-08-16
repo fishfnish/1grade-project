@@ -28,7 +28,6 @@ public class Shield : MonoBehaviour
     public float damagePlus; // 데미지 배율
     public float damagePlusTime; // 데미지 배율 적용시간
     public float originalSpeed; // 오리지널 스피드
-    public float originalDamage; // 오리지널 데미지
     public float originalStun; // 오리지널 스턴
     public float attackRange; // 방패치기 공격거리
     public float dashRange; // 대쉬 공격거리
@@ -54,7 +53,6 @@ public class Shield : MonoBehaviour
         player = monster.player;
         sk_manager = monster.sk_manager;
 
-        originalDamage = player.player_stat.demege;
         originalStun = monster.stun;
         originalSpeed = monster.monster_now_stat.speed;
         monster.monster_now_stat.is_dash = false;
@@ -191,7 +189,6 @@ public class Shield : MonoBehaviour
         player.player_stat.demege = player.player_stat.demege * damagePlus;
         yield return new WaitForSeconds(damagePlusTime);
 
-        player.player_stat.demege = originalDamage;
         monster.stun = originalStun;
     }
     private void OnCollisionEnter(Collision other)
