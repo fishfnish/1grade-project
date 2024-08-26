@@ -15,8 +15,6 @@ public class ESC : MonoBehaviour
     public GameObject PauseMenu;
     public GameObject VolumePanel;
     public GameObject ScreenSizePanel;
-    public AudioSource BGM;
-    public AudioSource SFX;
     // 볼륨
     public AudioMixer GameMixer;
     public Slider[] AudioSlider; // 0. MasterAudioSlider 1. BGMAudioSlider 2. SFXAudioSlider
@@ -66,12 +64,13 @@ public class ESC : MonoBehaviour
             else GameMixer.SetFloat(audioTypes[i], sound[i]);
         }
     }
-    public void ToggleAudioVolume()
-    {
-        float currentVolume;
-        GameMixer.GetFloat("Master", out currentVolume);
-        GameMixer.SetFloat("Master", currentVolume == -80 ? 0 : -80);
-    }
+    // public void ToggleAudioVolume()
+    // {
+    //     float currentVolume;
+    //     GameMixer.GetFloat("Master", out currentVolume);
+    //     GameMixer.SetFloat("Master", currentVolume == -80 ? 0 : -80);
+    //     AudioListener.volume = AudioListener.volume == 0 ? 1 : 0;
+    // }
     public void ResolutionOptionAdd()
     {
         resolutions = Screen.resolutions;
@@ -106,6 +105,7 @@ public class ESC : MonoBehaviour
     {
         SetActivePanel(PauseMenu);
         ESCpanel.SetActive(true);
+        AudioListener.volume = 0f;
         Time.timeScale = 0f;
         GameIsPaused = true;
         Debug.Log("게임 일시정지");
@@ -114,6 +114,7 @@ public class ESC : MonoBehaviour
     {
         SetActivePanel(null);
         ESCpanel.SetActive(false);
+        AudioListener.volume = 1f;
         Time.timeScale = 1f;
         GameIsPaused = false;
         Debug.Log("게임 재개");
