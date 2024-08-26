@@ -27,7 +27,7 @@ public class monster : MonoBehaviour
     public float monsterDamaged; // 데미지 받기
     public float originalSpeed;
 
-    private bool die = false;
+    public bool die = false;
     public bool damaged = false;
     public bool damaged2 = false; // 텍스트 띄우기용 
     public bool isSword;
@@ -102,10 +102,9 @@ public class monster : MonoBehaviour
         // transform.position + cam.rotation * Vector3.forward, cam.rotation * Vector3.up
 
         // 죽음
-        if (monster_now_stat.hp <= 0)
+        if (monster_now_stat.hp <= 0 || die)
         {
-            Destroy(gameObject);
-            die = true;
+            onDie();
         }
 
         // Debug.Log("Direction: " + direction + " | Distance: " + distance);
@@ -121,7 +120,7 @@ public class monster : MonoBehaviour
     }
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("bullet") || other.CompareTag("sword"))
+        if (other.CompareTag("bullet"))
         {
             monster_now_stat.speed = 0;
             if (other.CompareTag("sword"))
@@ -215,5 +214,10 @@ public class monster : MonoBehaviour
         {
             audioPlayed = false;
         }
+    }
+    public bool onDie()
+    {
+        Destroy(gameObject);
+        return true;
     }
 }

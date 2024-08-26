@@ -55,7 +55,7 @@ public class Shield : MonoBehaviour
         monster = GetComponent<monster>();
         player = monster.player;
         sk_manager = monster.sk_manager;
-        anim = GetComponent<Animator>();
+        // anim = GetComponent<Animator>();
         originalDamage = player.player_stat.demege;
         originalStun = monster.stun;
         originalSpeed = monster.monster_now_stat.speed;

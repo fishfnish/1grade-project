@@ -10,116 +10,128 @@ public class Wall : MonoBehaviour
     public MeshRenderer[] renderers;
     public WaitForSeconds delay = new WaitForSeconds(0.001f);
     public WaitForSeconds resetDelay = new WaitForSeconds(0.005f);
-    public float THRESHOLD_ALPHA;
-    public const float THRESHOLD_MAX_TIMER = 0.5f;
+    public float MinAlpha;
+    public float alphaValue;
+    public float MaxTIMER;
 
     public bool isReseting = false;
     public float timer = 0f;
     public Coroutine timeCheckCoroutine;
     public Coroutine resetCoroutine;
     public Coroutine becomeTransparentCoroutine;
+
     void Awake()
     {
         renderers = GetComponentsInChildren<MeshRenderer>();
+        alphaValue = 1.0f;
     }
-    public void Transparent()
+
+    public void BecomeTransparent()
     {
-        if (IsTransparent)
+        for(int i = 0; i< renderers.Length; i++)
         {
-            timer = 0f;
-            return;
+            foreach(Material material in renderers[i].materials)
+            {
+                material.renderQueue = 3000;
+            }
         }
+        
+        // if (IsTransparent)
+        // {
+        //     timer = 0f;
+        //     return;
+        // }
 
-        if (resetCoroutine != null && isReseting)
-        {
-            isReseting = false;
-            IsTransparent = false;
-            StopCoroutine(resetCoroutine);
-        }
+        // if (resetCoroutine != null && isReseting)
+        // {
+        //     isReseting = false;
+        //     IsTransparent = false;
+        //     StopCoroutine(resetCoroutine);
+        // }
 
-        IsTransparent = true;
-        StartCoroutine(BecomeTransparent());
+        // IsTransparent = true;
+        // StartCoroutine(BecomeTransparentCoroutine());
     }
-
-
     public void ResetOriginalTransparent()
     {
-        // SetMaterialOpaque();
         resetCoroutine = StartCoroutine(ResetOriginalTransparentCoroutine());
     }
 
-    public IEnumerator BecomeTransparent()
+    private IEnumerator BecomeTransparentCoroutine()
     {
-        bool isComplete = true;
-        for (int i = 0; i < renderers.Length; i++)
+        while (true)
         {
-            while (renderers[i].material.color.a >= THRESHOLD_ALPHA)
-            {
-                isComplete = false;
-                Color color = renderers[i].material.color;
-                color.a -= Time.deltaTime;
-                renderers[i].material.color = color;
-                yield return null;
-                Debug.Log("renderers[i].material.color.a" + renderers[i].material.color.a);
-                // timer += Time.deltaTime;
-            }
-        }
-        if (isComplete)
-        {
-            CheckTimer();
-        }
+            bool isComplete = true;
 
-        // Debug.Log(isComplete);
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                if (alphaValue > MinAlpha)
+                    isComplete = false;
+                
+                renderers[i].material.SetFloat("_objTrans", alphaValue);
+                alphaValue -= Time.deltaTime;
+                Debug.Log(alphaValue);
+            }
+
+            if (isComplete)
+            {
+                // Debug.Log("sss");
+                CheckTimer();
+                break;
+            }
+
+            yield return delay;
+        }
     }
 
     private IEnumerator ResetOriginalTransparentCoroutine()
     {
         IsTransparent = false;
 
-        bool isComplete = true;
-        for (int i = 0; i < renderers.Length; i++)
+        while (true)
         {
-            while (renderers[i].material.color.a <= 1f)
+            bool isComplete = true;
+
+            for (int i = 0; i < renderers.Length; i++)
             {
-                isComplete = false;
-                Color color = renderers[i].material.color;
-                color.a += Time.deltaTime;
-                renderers[i].material.color = color;
-                yield return null;
-                Debug.Log("renderers[i].material.color.a" + renderers[i].material.color.a);
-                // timer += Time.deltaTime;
+                if (alphaValue < 1.0f)
+                    isComplete = false;
+                
+                renderers[i].material.SetFloat("_objTrans", alphaValue);
+                alphaValue += Time.deltaTime;
+                Debug.Log(alphaValue);
             }
-        }
-        if (isComplete)
-        {
-            CheckTimer();
-            isReseting = false;
+
+            if (isComplete)
+            {
+                isReseting = false;
+                break;
+            }
+
+            yield return resetDelay;
         }
     }
 
     public void CheckTimer()
     {
+        // Debug.Log("aaa");
         if (timeCheckCoroutine != null)
-        {
             StopCoroutine(timeCheckCoroutine);
-            Debug.Log("sss" + timeCheckCoroutine);
-        }
         timeCheckCoroutine = StartCoroutine(CheckTimerCouroutine());
     }
 
     private IEnumerator CheckTimerCouroutine()
     {
-        Debug.Log("sss");
         timer = 0f;
 
         while (true)
         {
             timer += Time.deltaTime;
 
-            if (timer > THRESHOLD_MAX_TIMER)
+            if (timer > MaxTIMER)
             {
                 isReseting = true;
-                // ResetOriginalTransparent();
+                ResetOriginalTransparent();
                 break;
             }
 

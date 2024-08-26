@@ -12,23 +12,28 @@ public class ESC : MonoBehaviour
     // 게임 퍼즈
     public static bool GameIsPaused;
     public GameObject ESCpanel;
+    public GameObject PauseMenu;
     public GameObject VolumePanel;
     public GameObject ScreenSizePanel;
     public AudioSource BGM;
     public AudioSource SFX;
     // 볼륨
     public AudioMixer GameMixer;
-    public Slider MasterAudioSlider;
-    public Slider BGMAudioSlider;
-    public Slider SFXAudioSlider;
+    public Slider[] AudioSlider; // 0. MasterAudioSlider 1. BGMAudioSlider 2. SFXAudioSlider
     public float[] sound = new float[3]; // 0. Master 1.BGM 2. SFX
     ///////////////////// 텍스트 출력
     // 해상도
-     public TMP_Dropdown resolutionDropdown;  // 해상도 옵션을 표시할 Dropdown UI
+    public TMP_Dropdown resolutionDropdown;  // 해상도 옵션을 표시할 Dropdown UI
     private Resolution[] resolutions;  // 사용 가능한 해상도 목록
     // Start is called before the first frame update
     void Start()
     {
+        ESCpanel = GameObject.Find("ESCPanel");
+        PauseMenu = GameObject.Find("PauseMenu");
+        VolumePanel = GameObject.Find("VolumePanel");
+        ScreenSizePanel = GameObject.Find("ScreenSizePanel");
+        AudioSlider = GetComponentsInChildren<Slider>();
+        resolutionDropdown = GetComponentInChildren<TMP_Dropdown>();
         GameIsPaused = false;
         ESCpanel.SetActive(false);
         VolumePanel.SetActive(false);
@@ -39,7 +44,7 @@ public class ESC : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
     }
     public void EscMenu(InputAction.CallbackContext context)
     {
@@ -57,18 +62,17 @@ public class ESC : MonoBehaviour
     }
     public void AudioControl()
     {
-        sound[0] = MasterAudioSlider.value;
-        sound[1] = BGMAudioSlider.value;
-        sound[2] = SFXAudioSlider.value;
+        string[] audioTypes = { "Master", "BGM", "SFX" };
 
-        if (sound[0] == -40f) GameMixer.SetFloat("Master", -80);
-        else GameMixer.SetFloat("Master", sound[0]);
+        for (int i = 0; i < AudioSlider.Length; i++)
+        {
+            sound[i] = AudioSlider[i].value;
 
-        if (sound[1] == -40f) GameMixer.SetFloat("BGM", -80);
-        else GameMixer.SetFloat("BGM", sound[1]);
-
-        if (sound[2] == -40f) GameMixer.SetFloat("SFX", -80);
-        else GameMixer.SetFloat("SFX", sound[2]);
+            if (sound[i] == -40f)
+                GameMixer.SetFloat(audioTypes[i], -80);
+            else
+                GameMixer.SetFloat(audioTypes[i], sound[i]);
+        }
     }
     public void ToggleAudioVolume()
     {
@@ -108,8 +112,8 @@ public class ESC : MonoBehaviour
     {
         Debug.Log("Pause");
         ESCpanel.SetActive(true);
-        BGM.Pause();
-        SFX.Pause();
+        // BGM.Pause();
+        // SFX.Stop();
         Time.timeScale = 0f;
         GameIsPaused = true;
     }
@@ -117,23 +121,28 @@ public class ESC : MonoBehaviour
     {
         Debug.Log("Resume");
         ESCpanel.SetActive(false);
-        BGM.UnPause();
-        SFX.UnPause();
+        // PauseMenu.SetActive(false);
+        // VolumePanel.SetActive(false);
+        // ScreenSizePanel.SetActive(false);
+        // BGM.UnPause();
         Time.timeScale = 1f;
         GameIsPaused = false;
     }
     public void Volume()
     {
         VolumePanel.SetActive(true);
+        PauseMenu.SetActive(false);
     }
     public void ScreenSize()
     {
         ScreenSizePanel.SetActive(true);
+        PauseMenu.SetActive(false);
     }
     public void Return()
     {
         if (VolumePanel.activeSelf) VolumePanel.SetActive(false);
         else if (ScreenSizePanel.activeSelf) ScreenSizePanel.SetActive(false);
+        if (!PauseMenu.activeSelf) PauseMenu.SetActive(true);
 
     }
     public void QuitGame()

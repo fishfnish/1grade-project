@@ -9,10 +9,12 @@ public class camera_move : MonoBehaviour
     public GameObject Target;
     public Vector3 direction;
     public RaycastHit[] hits;
+    public RaycastHit PcHit;
 
     public float[] offset = new float[3] { 0.0f, 0.0f, 0.0f };
     public float[] agl_offset = new float[3] { 0.0f, 0.0f, 0.0f };
     public bool track;
+    public float distance;
 
     public float CameraSpeed = 10.0f;       // 카메라의 속도
     Vector3 TargetPos;                      // 타겟의 위치
@@ -37,18 +39,25 @@ public class camera_move : MonoBehaviour
         transform.position = Vector3.Slerp(transform.position, TargetPos, CameraSpeed * Time.deltaTime);
         if (track) transform.LookAt(Target.transform);
         else transform.rotation = Quaternion.Euler(agl_offset[0], agl_offset[1], agl_offset[2]);
-        
+
         direction = (Target.transform.position - transform.position).normalized;
-        hits = Physics.RaycastAll(transform.position, direction, Mathf.Infinity, 1 << LayerMask.NameToLayer("Wall"));
-
-        for (int i = 0; i < hits.Length; i++)
+        distance = Vector3.Distance(Target.transform.position, transform.position);
+        int wallLayerMask = LayerMask.GetMask("Wall");
+        hits = Physics.RaycastAll(transform.position, direction, distance, wallLayerMask);
+        if (Physics.Raycast(transform.position, direction, out PcHit))
         {
-            testcccc[] obj = hits[i].transform.GetComponentsInChildren<testcccc>();
-
-            for (int j = 0; j < obj.Length; j++)
+            if (PcHit.collider.tag == "Wall")
             {
-                // obj[j]?.Transparent();
-                obj[j]?.BecomeTransparent();
+                Debug.Log(PcHit.collider.tag);
+                for (int i = 0; i < hits.Length; i++)
+                {
+                    Wall[] obj = hits[i].transform.GetComponentsInChildren<Wall>();
+
+                    for (int j = 0; j < obj.Length; j++)
+                    {
+                        obj[j]?.BecomeTransparent();
+                    }
+                }
             }
         }
     }
