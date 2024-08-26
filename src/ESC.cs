@@ -50,14 +50,8 @@ public class ESC : MonoBehaviour
     {
         if (context.performed)
         {
-            if (!GameIsPaused)
-            {
-                Pause();
-            }
-            else
-            {
-                Resume();
-            }
+            if (GameIsPaused) Resume();
+            else Pause();
         }
     }
     public void AudioControl()
@@ -68,15 +62,15 @@ public class ESC : MonoBehaviour
         {
             sound[i] = AudioSlider[i].value;
 
-            if (sound[i] == -40f)
-                GameMixer.SetFloat(audioTypes[i], -80);
-            else
-                GameMixer.SetFloat(audioTypes[i], sound[i]);
+            if (sound[i] == -40f) GameMixer.SetFloat(audioTypes[i], -80);
+            else GameMixer.SetFloat(audioTypes[i], sound[i]);
         }
     }
     public void ToggleAudioVolume()
     {
-        AudioListener.volume = AudioListener.volume == 0 ? 1 : 0;
+        float currentVolume;
+        GameMixer.GetFloat("Master", out currentVolume);
+        GameMixer.SetFloat("Master", currentVolume == -80 ? 0 : -80);
     }
     public void ResolutionOptionAdd()
     {
@@ -110,41 +104,30 @@ public class ESC : MonoBehaviour
     }
     public void Pause()
     {
-        Debug.Log("Pause");
+        SetActivePanel(PauseMenu);
         ESCpanel.SetActive(true);
-        // BGM.Pause();
-        // SFX.Stop();
         Time.timeScale = 0f;
         GameIsPaused = true;
+        Debug.Log("게임 일시정지");
     }
     public void Resume()
     {
-        Debug.Log("Resume");
+        SetActivePanel(null);
         ESCpanel.SetActive(false);
-        // PauseMenu.SetActive(false);
-        // VolumePanel.SetActive(false);
-        // ScreenSizePanel.SetActive(false);
-        // BGM.UnPause();
         Time.timeScale = 1f;
         GameIsPaused = false;
+        Debug.Log("게임 재개");
     }
-    public void Volume()
+    private void SetActivePanel(GameObject activePanel)
     {
-        VolumePanel.SetActive(true);
-        PauseMenu.SetActive(false);
+        PauseMenu.SetActive(activePanel == PauseMenu);
+        VolumePanel.SetActive(activePanel == VolumePanel);
+        ScreenSizePanel.SetActive(activePanel == ScreenSizePanel);
     }
-    public void ScreenSize()
-    {
-        ScreenSizePanel.SetActive(true);
-        PauseMenu.SetActive(false);
-    }
-    public void Return()
-    {
-        if (VolumePanel.activeSelf) VolumePanel.SetActive(false);
-        else if (ScreenSizePanel.activeSelf) ScreenSizePanel.SetActive(false);
-        if (!PauseMenu.activeSelf) PauseMenu.SetActive(true);
+    public void Volume() => SetActivePanel(VolumePanel);
+    public void ScreenSize() => SetActivePanel(ScreenSizePanel);
+    public void Return() => SetActivePanel(PauseMenu);
 
-    }
     public void QuitGame()
     {
         Debug.Log("게임 종료");
