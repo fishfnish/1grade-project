@@ -1,3 +1,7 @@
+8월 20일
+
+MonsterSpawner.cs 완성
+
 8월 7일
 
 ESC메뉴 완성
