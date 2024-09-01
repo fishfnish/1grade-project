@@ -33,7 +33,6 @@ public class MonsterSpawner : MonoBehaviour
     private int spawnCircleSequence; // 소환 서클 오브젝트 순서
     private int waveIndex; // 현재 웨이브 인덱스
     private int monstersRemainingInWave;  // 현재 웨이브에 남아 있는 몬스터 수
-    public Vector3 spawnArea;
     public float monsterDownSize; // 몬스터 땅에 묻기 사이즈
     public float monsterUpSize; // 몬스터 땅에 띄우기 사이즈
     public float spawnCircleLifeTime; // 마법진 라이프 타임
