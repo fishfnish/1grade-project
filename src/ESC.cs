@@ -19,13 +19,13 @@ public class ESC : MonoBehaviour
     public AudioMixer GameMixer;
     public Slider[] AudioSlider; // 0. MasterAudioSlider 1. BGMAudioSlider 2. SFXAudioSlider
     public float[] sound = new float[3]; // 0. Master 1.BGM 2. SFX
-    ///////////////////// 텍스트 출력
     // 해상도
     public TMP_Dropdown resolutionDropdown;  // 해상도 옵션을 표시할 Dropdown UI
     private Resolution[] resolutions;  // 사용 가능한 해상도 목록
     // Start is called before the first frame update
     void Start()
     {
+        // ESCpanel = gameObject.GetComponent<GameObject>();
         ESCpanel = GameObject.Find("ESCPanel");
         PauseMenu = GameObject.Find("PauseMenu");
         VolumePanel = GameObject.Find("VolumePanel");
@@ -37,12 +37,6 @@ public class ESC : MonoBehaviour
         VolumePanel.SetActive(false);
         ScreenSizePanel.SetActive(false);
         ResolutionOptionAdd();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
     }
     public void EscMenu(InputAction.CallbackContext context)
     {

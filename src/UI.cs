@@ -7,21 +7,17 @@ using TMPro;
 
 public class UI : MonoBehaviour
 {
+    // 플레이어 UI
+    public player pc;
+    public Slider pcSlider;
+    int bullCnt;
 
     public TextMeshProUGUI weapon_txt;
     public TextMeshProUGUI bullet_txt;
     ///////////////////// 
 
-    /////////////////////체력,스테미나 바
-    public Slider hp_bar;
-    public Slider stamina_bar;
-    ///////////////////// 
-
     public GameObject[] bullet_cnt_img = new GameObject[6];
     public GameObject bullet_img;
-    // public GameObject player;
-    public player pc;
-    int bullcnt;
 
     public TextMeshProUGUI timer;
     int m, ss;
@@ -52,7 +48,7 @@ public class UI : MonoBehaviour
         // weapon_txt.text = pns.weapon[pns.now_weapon];
         // bullet_txt.text = " "+ pns.bullet_cnt;
 
-        hp_bar.value = pc.player_stat.hp / pc.max_HP;
+        pcSlider.value = pc.player_stat.hp / pc.max_HP;
 
         s += Time.deltaTime;
         ss = (int)s;

@@ -102,7 +102,7 @@ public class monster : MonoBehaviour
         // transform.position + cam.rotation * Vector3.forward, cam.rotation * Vector3.up
 
         // 죽음
-        if (monster_now_stat.hp <= 0 || die)
+        if (monster_now_stat.hp <= 0)
         {
             onDie();
         }
@@ -217,6 +217,7 @@ public class monster : MonoBehaviour
     }
     public bool onDie()
     {
+        die = true;
         Destroy(gameObject);
         return true;
     }
